@@ -1,14 +1,41 @@
+import axios from 'axios'
+import { signInWithPopup } from 'firebase/auth'
 import { Sparkles, X } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useDispatch } from 'react-redux'
+import { auth, provider } from '../../firebase'
+import { setUserData } from '../redux/userSlice'
 
 const LoginModel = ({open, onClose}) => {
+    const dispatch =useDispatch()
+    const handleGoogleAuth = async () => {
+        try {
+            const result = await signInWithPopup(auth,provider)
+            const{data} = await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/auth/google`,{
+                name:result.user.displayName,
+                email:result.user.email,
+                avatar:result.user.photoURL
+            },{withCredentials:true})
+            dispatch(setUserData(data))
+        } catch (error) {
+            console.log(error)
+        }
+    }
     return (
         <div>
             {open && (
                 <motion.div
+                initial={{opacity:0}}
+                animate={{opacity:1}}
+                exit={{opacity:0}}
+                onClick={onClose}
                     className='fixed inset-0 flex z-100 items-center justify-center bg-black/80 backdrop-blur-xl px-4'
                 >
                     <motion.div
+                    initial={{scale:0.88,opacity:0, y:60}}
+                    animate={{scale:1,opacity:1, y:0}}
+                    exit={{scale:0.9,opacity:0, y:40}}
+                    transition={{duration:0.45, ease:"easeOut"}}
                         className='relative w-full max-w-md p-px rounded-3xl bg-linear-to-br from-purple-500/20 via-blue-500/30  t0-transparent'
                     >
                         <div className='relative rounded-3xl bg-[#0b0b0b] border border-white/10 shadow-[0_30px_120px_rgba(0,0,0,0,0.8)] overflow-hidden'>
@@ -35,6 +62,8 @@ const LoginModel = ({open, onClose}) => {
                                     <span className='bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent'>Nep AI</span>
                                 </h2>
                                 <motion.button
+
+                                onClick={handleGoogleAuth}
                                 whileHover={{scale:1.04}}
                                 whileTap={{scale:0.96}}
                                 className='group relative w-full h-13 rounded-xl bg-white text-black font-semibold shadow-xl overflow-hidden'
@@ -45,6 +74,20 @@ const LoginModel = ({open, onClose}) => {
                                     </div>
 
                                 </motion.button>
+
+                                <div className="flex items-center gap-4 my-10">
+                                    <div className="h-px flex-1 bg-white/10"/>
+                                    <span className='text-xs tracking-tight text-zinc-500'>Secure Login</span>
+                                    <div className="h-px flex-1 bg-white/10"/>
+                                </div>
+                                <p className='text-xs text-zinc-500 leading-relaxed'>
+                                    By continuing you agree to our{" "}
+                                    <span className='underline cursor-pointer hover:text-zinc-300'>Terms of Services</span>{" "}
+                                    and{" "}
+                                    <span className='underline cursor-pointer hover:text-zinc-300'>Privacy Policy</span>
+                                </p>
+
+                        
                             </div>
 
                         </div>
